@@ -1,0 +1,789 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>EEC™</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,700&family=Share+Tech+Mono&display=swap');
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  font-family: 'Share Tech Mono', 'Courier New', monospace;
+  background: #000;
+  color: #ccc;
+  cursor: crosshair;
+}
+
+:root {
+  --p1: #c4b5f4;
+  --p2: #a78bfa;
+  --pg: rgba(167,139,250,0.25);
+  --dark: #060010;
+  --text: #d0cce8;
+  --dim: #666;
+}
+
+/* ── PAGES ── */
+.page { display: none; min-height: 100vh; }
+.page.active { display: block; }
+
+/* ── GIF BORDER FRAME ── */
+.gif-frame {
+  position: fixed; top: 0; left: 0;
+  width: 100vw; height: 100vh;
+  pointer-events: none; z-index: 0;
+  overflow: hidden;
+}
+/* top row */
+.gif-frame .row-top,
+.gif-frame .row-bottom {
+  position: absolute; left: 0; right: 0;
+  display: flex; overflow: hidden;
+}
+.gif-frame .row-top { top: 0; }
+.gif-frame .row-bottom { bottom: 0; }
+.gif-frame .col-left,
+.gif-frame .col-right {
+  position: absolute; top: 0; bottom: 0;
+  display: flex; flex-direction: column; overflow: hidden;
+}
+.gif-frame .col-left { left: 0; }
+.gif-frame .col-right { right: 0; }
+.gif-frame img {
+  width: 80px; height: 80px;
+  object-fit: cover; flex-shrink: 0; display: block;
+  image-rendering: pixelated;
+}
+
+/* ── PAGE CONTENT ── */
+.page-inner {
+  position: relative; z-index: 1;
+  min-height: 100vh;
+  padding: 90px 130px;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+}
+
+/* content area — NO border, just shadow glow */
+.content-box {
+  padding: 38px 44px;
+  max-width: 680px; width: 100%;
+  text-align: center;
+  background: rgba(6,0,16,0.75);
+  box-shadow: 0 0 60px 12px rgba(100,60,180,0.18), 0 0 120px 30px rgba(60,20,120,0.10);
+}
+
+/* back btn */
+.back-btn {
+  position: fixed; bottom: 84px; left: 84px; z-index: 200;
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 22px; letter-spacing: 0.14em;
+  color: #444; background: transparent; border: none;
+  cursor: pointer; padding: 4px 0;
+}
+.back-btn:hover { color: var(--p1); }
+
+/* ── TYPOGRAPHY ── */
+.label-tiny {
+  font-size: 9px; letter-spacing: 0.28em;
+  text-transform: uppercase; color: var(--p2);
+  margin-bottom: 12px; display: block;
+  font-family: 'Share Tech Mono', monospace;
+}
+.section-title {
+  font-family: 'Playfair Display', serif; font-weight: 900;
+  font-size: 24px; color: var(--text);
+  margin-bottom: 12px; line-height: 1.25;
+  text-shadow: 1px 1px 0 #000, 2px 2px 0 rgba(100,60,200,0.3);
+}
+.step-ind {
+  font-size: 9px; letter-spacing: 0.2em;
+  color: #3a3a3a; margin-bottom: 16px;
+  text-transform: uppercase;
+}
+.body-sm {
+  font-size: 12px; line-height: 1.85; color: #666;
+  font-style: italic; margin-bottom: 14px;
+}
+.fine-print {
+  font-size: 9px; color: #2e2e2e; line-height: 1.8; margin-top: 14px;
+}
+.locked-item {
+  font-family: 'Playfair Display', serif; font-size: 16px;
+  color: var(--p1); letter-spacing: 0.12em;
+  text-shadow: 0 0 14px var(--pg), 0 0 30px rgba(124,58,237,0.25), 1px 1px 0 #000;
+  display: inline-block; padding: 12px 22px; margin: 18px auto;
+  border: 1px solid rgba(167,139,250,0.2);
+}
+.mandatory-tag {
+  font-size: 9px; letter-spacing: 0.18em;
+  color: var(--p2); display: block; margin-bottom: 14px;
+  text-shadow: 0 0 8px var(--pg);
+}
+.page-gif {
+  max-height: 100px; width: auto; max-width: 120px;
+  object-fit: contain; display: block;
+  margin: 0 auto 20px;
+  image-rendering: pixelated;
+}
+
+/* ── BUTTONS — pill shape ── */
+.btn {
+  display: inline-block;
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 11px; letter-spacing: 0.16em;
+  text-transform: uppercase;
+  padding: 9px 26px;
+  border-radius: 999px;
+  border: 1px solid currentColor;
+  background: none; cursor: pointer;
+  margin-top: 18px;
+}
+.btn-white { color: #bbb; border-color: #444; }
+.btn-white:hover { color: #fff; border-color: #888; }
+.btn-purple { color: var(--p1); border-color: rgba(167,139,250,0.35); }
+.btn-purple:hover { background: rgba(167,139,250,0.07); border-color: var(--p1); }
+.btn-black { color: #222; border-color: #333; border-radius: 999px; }
+.btn-black:hover { color: #111; background: rgba(0,0,0,0.06); }
+
+/* fork buttons */
+.fork-btns { display: flex; gap: 18px; justify-content: center; flex-wrap: wrap; }
+.fork-question {
+  font-family: 'Playfair Display', serif; font-weight: 700;
+  font-size: 28px; color: var(--text); margin-bottom: 8px;
+  line-height: 1.3;
+  text-shadow: 1px 1px 0 #000, 2px 2px 0 rgba(80,40,160,0.3);
+}
+.fork-sub { font-size: 11px; color: #444; margin-bottom: 26px; font-style: italic; }
+
+/* ── OPTION TAGS — display only ── */
+.options-display { text-align: left; margin: 12px 0; }
+.grp-label {
+  font-size: 8px; letter-spacing: 0.2em; color: #2e2e2e;
+  text-transform: uppercase; margin: 12px 0 6px;
+}
+.tags-row { display: flex; flex-wrap: wrap; gap: 5px; }
+.tag {
+  font-size: 10px; letter-spacing: 0.04em;
+  padding: 3px 8px; color: #888;
+  cursor: default;
+  font-family: 'Share Tech Mono', monospace;
+}
+.tag.star::after { content: " ★"; color: #7a3030; font-size: 8px; }
+
+/* ── AMPLIFIER TOGGLES ── */
+.tog-row {
+  display: flex; justify-content: space-between;
+  align-items: flex-start; padding: 8px 0;
+  border-bottom: 1px solid #0e0e0e; gap: 10px;
+}
+.tog-label { font-size: 11px; color: #bbb; flex: 1; text-align: left; line-height: 1.4; }
+.tog-sub { font-size: 9px; color: #3a3a3a; margin-top: 2px; }
+.yn { display: flex; gap: 3px; flex-shrink: 0; padding-top: 2px; }
+.yn-btn {
+  font-size: 9px; padding: 3px 10px;
+  border-radius: 999px; border: 1px solid #222;
+  background: none; color: #3a3a3a; cursor: pointer;
+  font-family: 'Share Tech Mono', monospace; letter-spacing: 0.1em;
+}
+.yn-btn.on { border-color: rgba(167,139,250,0.4); color: var(--p1); }
+
+/* ── SPEC TABLE ── */
+.spec-table { width: 100%; font-size: 10px; border-collapse: collapse; margin: 14px 0; text-align: left; }
+.spec-table td { padding: 6px 0; border-bottom: 1px solid #0e0e0e; vertical-align: top; }
+.spec-table td:first-child { color: #3a3a3a; width: 36%; letter-spacing: 0.05em; }
+.spec-table td:last-child { color: #888; line-height: 1.6; }
+
+.legal-box {
+  font-size: 9px; color: #383838; line-height: 1.9;
+  font-style: italic; margin: 14px 0; text-align: left;
+  padding: 12px 0;
+  border-top: 1px solid #111; border-bottom: 1px solid #111;
+}
+
+/* ── INSTALL STEPS ── */
+.install-title {
+  font-family: 'Playfair Display', serif; font-weight: 700;
+  font-size: 17px; color: var(--text); margin-bottom: 4px;
+  text-shadow: 1px 1px 0 #000;
+}
+.install-ref { font-size: 8px; color: #222; letter-spacing: 0.18em; margin-bottom: 16px; }
+.warn-strip {
+  font-size: 9px; color: #5a2e2e; line-height: 1.8;
+  margin-bottom: 14px; text-align: left; font-style: italic;
+}
+.i-step { padding: 10px 0; border-bottom: 1px solid #0e0e0e; text-align: left; }
+.i-num { font-size: 8px; color: var(--p2); letter-spacing: 0.18em; margin-bottom: 3px; }
+.i-title { font-size: 11px; color: #aaa; margin-bottom: 3px; font-weight: bold; }
+.i-body { font-size: 9px; color: #3a3a3a; line-height: 1.9; }
+
+/* ── COVER ── */
+#p1 { background: #fff; }
+.cover-inner {
+  min-height: 100vh; display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  text-align: center; padding: 60px 40px;
+  background: #fff;
+}
+.cover-gif {
+  max-height: 200px; width: auto; max-width: 240px;
+  object-fit: contain; display: block;
+  margin: 0 auto 30px;
+  image-rendering: pixelated;
+}
+.cover-logo {
+  font-family: 'Playfair Display', serif; font-weight: 900;
+  font-size: 44px; color: #1a7a1a;
+  text-shadow:
+    0 0 6px #00ff41, 0 0 16px #00ff41,
+    0 0 36px #00cc33, 0 0 60px #009922,
+    2px 2px 0 #003300;
+  line-height: 1.15; margin-bottom: 12px;
+}
+.cover-sub {
+  font-family: 'Share Tech Mono', monospace; font-size: 9px;
+  letter-spacing: 0.28em; color: #1a8822;
+  text-shadow: 0 0 5px #00ff41; margin-bottom: 4px;
+}
+.cover-tagline {
+  font-family: 'Share Tech Mono', monospace; font-size: 11px;
+  color: #666; letter-spacing: 0.08em;
+  margin: 16px 0 26px; font-style: italic;
+}
+
+/* ── FEMALE BUILDER ── */
+#p5 { background: var(--dark); }
+.builder-wrap {
+  position: relative; z-index: 1;
+  max-width: 960px; margin: 0 auto;
+  padding: 90px 130px; min-height: 100vh;
+}
+.builder-title {
+  font-family: 'Playfair Display', serif; font-weight: 700;
+  font-size: 17px; color: var(--text); margin-bottom: 4px; text-align: center;
+  text-shadow: 1px 1px 0 #000;
+}
+.builder-sub { font-size: 9px; color: #333; text-align: center; letter-spacing: 0.07em; margin-bottom: 22px; }
+
+.assembly-zone {
+  min-height: 140px;
+  background: rgba(100,60,180,0.04);
+  box-shadow: 0 0 40px 6px rgba(100,60,180,0.1), inset 0 0 30px rgba(80,40,160,0.06);
+  padding: 26px 16px 14px; margin-bottom: 22px; position: relative;
+}
+.az-label {
+  font-size: 8px; letter-spacing: 0.16em; color: #222;
+  position: absolute; top: 8px; left: 12px;
+}
+.az-locked {
+  font-family: 'Playfair Display', serif; font-size: 13px; color: var(--p1);
+  text-shadow: 0 0 12px var(--pg), 0 0 24px rgba(124,58,237,0.25), 1px 1px 0 #000;
+  display: inline-block; letter-spacing: 0.1em; margin-bottom: 8px;
+  padding: 6px 14px; border: 1px solid rgba(167,139,250,0.15);
+}
+.az-items { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 8px; }
+.az-chip {
+  font-size: 9px; letter-spacing: 0.05em; padding: 4px 10px;
+  border-radius: 999px; border: 1px solid rgba(167,139,250,0.25);
+  color: var(--p1); background: rgba(167,139,250,0.06); cursor: pointer;
+  font-family: 'Share Tech Mono', monospace;
+}
+.az-chip:hover { background: rgba(167,139,250,0.18); }
+
+.opts-grid {
+  display: grid; grid-template-columns: 1fr 1fr 1fr;
+  gap: 14px; margin-bottom: 20px;
+}
+.opt-cluster { display: flex; flex-direction: column; gap: 3px; }
+.opt-cluster:nth-child(2) { margin-top: 10px; }
+.opt-cluster:nth-child(4) { margin-top: -8px; }
+.opt-cluster:nth-child(5) { margin-top: 16px; }
+.oc-label { font-size: 8px; letter-spacing: 0.14em; color: #282828; margin-bottom: 4px; text-transform: uppercase; }
+.opt-pill {
+  font-size: 10px; letter-spacing: 0.04em;
+  padding: 4px 10px; border-radius: 999px;
+  border: 1px solid #1e1e1e; color: #777;
+  cursor: pointer; background: none;
+  font-family: 'Share Tech Mono', monospace;
+  text-align: left; line-height: 1.4;
+}
+.opt-pill:hover { border-color: rgba(167,139,250,0.3); color: var(--p1); }
+.opt-pill.sel { color: #1e1e1e; border-color: #111; text-decoration: line-through; cursor: default; opacity: 0.25; }
+
+/* ── EJAC PAGE ── */
+#p8 { background: #000; }
+.ejac-inner {
+  min-height: 100vh; display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  text-align: center; padding: 60px 130px;
+  position: relative; z-index: 1;
+}
+.ejac-gif {
+  max-height: 180px; width: auto; max-width: 260px;
+  object-fit: contain; display: block; margin: 0 auto 26px;
+  image-rendering: pixelated;
+}
+.ejac-title {
+  font-family: 'Playfair Display', serif; font-weight: 900; font-size: 54px;
+  color: var(--p1);
+  text-shadow: 0 0 12px var(--pg), 0 0 28px rgba(124,58,237,0.25),
+               0 0 60px rgba(100,40,200,0.12), 2px 2px 0 #000;
+  margin-bottom: 8px; line-height: 1.1;
+}
+.ejac-sub { font-size: 9px; letter-spacing: 0.16em; color: #444; margin-bottom: 26px; }
+.excl-section { max-width: 500px; margin: 0 auto; text-align: left; padding-top: 20px; }
+.excl-head { font-size: 8px; letter-spacing: 0.18em; color: #1e1e1e; margin-bottom: 10px; text-align: center; text-transform: uppercase; }
+.excl-item { font-size: 10px; color: #1c1c1c; text-decoration: line-through; line-height: 2.1; text-decoration-color: #252525; }
+.final-stmt { font-size: 10px; color: #252525; font-style: italic; line-height: 2; text-align: center; margin: 18px 0; }
+.footer-corp { font-size: 7px; color: #141414; letter-spacing: 0.09em; margin-top: 22px; line-height: 2.1; text-align: center; }
+</style>
+</head>
+<body>
+
+<!-- ═══════════════════════════════ -->
+<!-- PAGE 1 — COVER                 -->
+<!-- ═══════════════════════════════ -->
+<div class="page active" id="p1">
+  <div class="cover-inner">
+    <img src="1.gif" alt="" class="cover-gif">
+    <div class="cover-logo">Ejaculatory Economy<br>Corporation™</div>
+    <div class="cover-sub">EEC™ &nbsp;·&nbsp; DESIRE INFRASTRUCTURE DIVISION &nbsp;·&nbsp; EST. MMXXIV</div>
+    <div class="cover-tagline"><i>The world's foremost provider of visible, quantifiable,<br>ejaculation-indexed pleasure solutions.</i></div>
+    <button class="btn btn-black" onclick="goTo('p2')">BEGIN PRIVATE CONFIGURATION →</button>
+  </div>
+</div>
+
+
+<!-- ═══════════════════════════════ -->
+<!-- PAGE 2 — CLIMAX MANDATORY      -->
+<!-- ═══════════════════════════════ -->
+<div class="page" id="p2" style="background:var(--dark);">
+  <div class="gif-frame" id="frame2"></div>
+  <button class="back-btn" onclick="goTo('p1')">← back</button>
+  <div class="page-inner">
+    <div class="content-box">
+      <span class="label-tiny">step 1 of 5 — mandatory selection</span>
+      <div class="section-title">Climax Package™</div>
+      <div class="body-sm">
+        The Climax Package™ is the foundational output unit of all EEC™ products.<br>
+        It cannot be deselected, modified, or substituted.<br>
+        Climax is the product. Everything else is delivery infrastructure.
+      </div>
+      <div class="locked-item">CLIMAX PACKAGE™ &nbsp;■&nbsp; MANDATORY</div>
+      <div class="fine-print">EEC™ Legal Notice: The Climax Package cannot be removed from your configuration. EEC™ defines climax exclusively as a visible, ejaculatory endpoint. Alternative definitions are not recognized by this platform. Attempts to deselect this item will result in session termination.</div>
+      <br>
+      <button class="btn btn-purple" onclick="goTo('p3')">confirmed — proceed →</button>
+    </div>
+  </div>
+</div>
+
+
+<!-- ═══════════════════════════════ -->
+<!-- PAGE 3 — ROUTING               -->
+<!-- ═══════════════════════════════ -->
+<div class="page" id="p3" style="background:var(--dark);">
+  <div class="gif-frame" id="frame3"></div>
+  <button class="back-btn" onclick="goTo('p2')">← back</button>
+  <div class="page-inner">
+    <div class="content-box">
+      <span class="label-tiny">step 2 of 5 — physiological routing</span>
+      <img src="2.gif" alt="" class="page-gif">
+      <div class="fork-question">Do you possess<br>an ejaculatory penis?</div>
+      <div class="fork-sub">EEC™ requires a declaration of ejaculatory status to route your desire through the appropriate product pipeline. Your selection is binding.</div>
+      <div class="fork-btns">
+        <button class="btn btn-white" onclick="goTo('p4a')">YES</button>
+        <button class="btn btn-white" onclick="goTo('p5')">NO</button>
+      </div>
+      <div class="fine-print" style="margin-top:16px;">EEC™ does not recognize desire modalities that fall outside this binary.</div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ═══════════════════════════════ -->
+<!-- PAGE 4A — SCENE PRESETS        -->
+<!-- ═══════════════════════════════ -->
+<div class="page" id="p4a" style="background:var(--dark);">
+  <div class="gif-frame" id="frame4a"></div>
+  <button class="back-btn" onclick="goTo('p3')">← back</button>
+  <div class="page-inner">
+    <div class="content-box">
+      <span class="step-ind">pathway a — step 3 of 5 — scene presets™</span>
+      <div class="section-title">Contextual Arousal Infrastructure</div>
+      <div class="body-sm">Select one or more Scene Presets™ to provide narrative scaffolding for your ejaculatory experience.</div>
+      <img src="3.gif" alt="" class="page-gif">
+      <div class="mandatory-tag">decorative selection — output unaffected by choice</div>
+      <div class="options-display">
+        <div class="grp-label">Identity / Role Presets</div>
+        <div class="tags-row">
+          <span class="tag">MILF</span><span class="tag">Stepmom</span><span class="tag">Babysitter</span><span class="tag">College Student</span><span class="tag">Virgin</span><span class="tag">Office Lady</span><span class="tag">Nurse</span><span class="tag">Maid</span><span class="tag">Nun</span><span class="tag">Cheerleader</span><span class="tag">Librarian</span><span class="tag">Personal Trainer</span><span class="tag">Yoga Instructor</span><span class="tag">Boss</span><span class="tag">Intern</span><span class="tag">Neighbor</span><span class="tag">Stranger</span><span class="tag">Ex-Girlfriend</span><span class="tag">Idol</span><span class="tag">Gamer Girl</span><span class="tag">Streamer</span><span class="tag">Witch</span><span class="tag">Elf</span><span class="tag">Alien</span>
+        </div>
+        <div class="grp-label">Body / Appearance Markers</div>
+        <div class="tags-row">
+          <span class="tag">Asian</span><span class="tag">Latina</span><span class="tag">Ebony</span><span class="tag">Petite</span><span class="tag">Thick</span><span class="tag">Chubby</span><span class="tag">Tall</span><span class="tag">Muscular</span><span class="tag">Tattooed</span><span class="tag">Pierced</span><span class="tag">Hairy</span><span class="tag">Shaved</span><span class="tag">Redhead</span><span class="tag">Blonde</span><span class="tag">Glasses</span><span class="tag">Braces</span>
+        </div>
+        <div class="grp-label">Relationship Dynamics</div>
+        <div class="tags-row">
+          <span class="tag">Stepsiblings</span><span class="tag">Teacher / Student</span><span class="tag">Doctor / Patient</span><span class="tag">Coach / Athlete</span><span class="tag">Landlord / Tenant</span><span class="tag">Rivals</span><span class="tag">Enemies</span><span class="tag">Childhood Friends</span>
+        </div>
+        <div class="grp-label">M/M & Additional</div>
+        <div class="tags-row">
+          <span class="tag">Twink</span><span class="tag">Bear</span><span class="tag">Daddy</span><span class="tag">Jock</span><span class="tag">Femboy</span><span class="tag">Crossdresser</span><span class="tag">Bi</span><span class="tag">Threesome</span><span class="tag">Orgy</span><span class="tag">Glory Hole</span><span class="tag">Public</span><span class="tag">Hidden Cam POV</span>
+        </div>
+        <div class="grp-label">Location</div>
+        <div class="tags-row">
+          <span class="tag">Office</span><span class="tag">Gym</span><span class="tag">Shower</span><span class="tag">Car</span><span class="tag">Classroom</span><span class="tag">Hotel</span><span class="tag">Pool</span><span class="tag">Elevator</span><span class="tag">Changing Room</span><span class="tag">Dungeon</span>
+        </div>
+      </div>
+      <button class="btn btn-purple" onclick="goTo('p4b')">proceed to desire amplification →</button>
+    </div>
+  </div>
+</div>
+
+
+<!-- ═══════════════════════════════ -->
+<!-- PAGE 4B — AMPLIFIERS           -->
+<!-- ═══════════════════════════════ -->
+<div class="page" id="p4b" style="background:var(--dark);">
+  <div class="gif-frame" id="frame4b"></div>
+  <button class="back-btn" onclick="goTo('p4a')">← back</button>
+  <div class="page-inner">
+    <div class="content-box">
+      <span class="step-ind">pathway a — step 4 of 5 — desire amplifiers™</span>
+      <div class="section-title">Somatic Scalar Modifiers</div>
+      <img src="4.gif" alt="" class="page-gif">
+      <div style="text-align:left; margin-top:8px;">
+        <div class="tog-row"><div><div class="tog-label">Hyper-Breasts — Standard (×3 anatomical scale)</div><div class="tog-sub">Functional only as stimulation delivery surface.</div></div><div class="yn"><button class="yn-btn on" onclick="yn(this)">YES</button><button class="yn-btn" onclick="yn(this)">NO</button></div></div>
+        <div class="tog-row"><div><div class="tog-label">Hyper-Breasts — Half-Body Variant™ (×5 scale)</div><div class="tog-sub">Complete decorporealization from host body.</div></div><div class="yn"><button class="yn-btn on" onclick="yn(this)">YES</button><button class="yn-btn" onclick="yn(this)">NO</button></div></div>
+        <div class="tog-row"><div><div class="tog-label">30cm Cock / 45cm Industrial Grade™</div><div class="tog-sub">Anatomical plausibility not guaranteed nor required.</div></div><div class="yn"><button class="yn-btn on" onclick="yn(this)">YES</button><button class="yn-btn" onclick="yn(this)">NO</button></div></div>
+        <div class="tog-row"><div><div class="tog-label">Extreme Size Difference (Height >60cm / Weight >80kg)</div><div class="tog-sub">Power asymmetry visualization module.</div></div><div class="yn"><button class="yn-btn on" onclick="yn(this)">YES</button><button class="yn-btn" onclick="yn(this)">NO</button></div></div>
+        <div class="tog-row"><div><div class="tog-label">Ahegao Face — Tongue Extension Maximum™</div><div class="tog-sub">Facial expression as climax confirmation signal.</div></div><div class="yn"><button class="yn-btn on" onclick="yn(this)">YES</button><button class="yn-btn" onclick="yn(this)">NO</button></div></div>
+        <div class="tog-row"><div><div class="tog-label">Tentacles — Multi-Penetration Bundle™</div><div class="tog-sub">Non-human orifice optimization. DLC content.</div></div><div class="yn"><button class="yn-btn" onclick="yn(this)">YES</button><button class="yn-btn on" onclick="yn(this)">NO</button></div></div>
+        <div class="tog-row"><div><div class="tog-label">Creepy Middle-Aged Man — Sweating Variant™</div><div class="tog-sub">Japanese market specification. Dissonance amplification protocol.</div></div><div class="yn"><button class="yn-btn" onclick="yn(this)">YES</button><button class="yn-btn on" onclick="yn(this)">NO</button></div></div>
+        <div class="tog-row"><div><div class="tog-label">Impossible Waist-to-Hip Ratio — Physics-Defying Edition™</div><div class="tog-sub">Scalar body modification.</div></div><div class="yn"><button class="yn-btn on" onclick="yn(this)">YES</button><button class="yn-btn" onclick="yn(this)">NO</button></div></div>
+        <div class="tog-row"><div><div class="tog-label">Belly Bulge — Depth Indicator Visible™</div><div class="tog-sub">Penetration depth visualization module.</div></div><div class="yn"><button class="yn-btn" onclick="yn(this)">YES</button><button class="yn-btn on" onclick="yn(this)">NO</button></div></div>
+        <div class="tog-row"><div><div class="tog-label">Heart Pupil Variant™</div><div class="tog-sub">Consent simulation overlay.</div></div><div class="yn"><button class="yn-btn on" onclick="yn(this)">YES</button><button class="yn-btn" onclick="yn(this)">NO</button></div></div>
+      </div>
+      <button class="btn btn-purple" style="margin-top:20px;" onclick="goTo('p4c')">proceed to fragmentation →</button>
+    </div>
+  </div>
+</div>
+
+
+<!-- ═══════════════════════════════ -->
+<!-- PAGE 4C — FRAGMENTATION        -->
+<!-- ═══════════════════════════════ -->
+<div class="page" id="p4c" style="background:var(--dark);">
+  <div class="gif-frame" id="frame4c"></div>
+  <button class="back-btn" onclick="goTo('p4b')">← back</button>
+  <div class="page-inner">
+    <div class="content-box">
+      <span class="step-ind">pathway a — step 5 of 5 — fragmentation modules™ & climax rendering™</span>
+      <div class="section-title">Bodily Excerpt Rendering & Climax Delivery</div>
+      <img src="5.gif" alt="" class="page-gif">
+      <div class="options-display">
+        <div class="grp-label">Fragmentation Modules™</div>
+        <div class="tags-row">
+          <span class="tag">Penetration Close-Up (Standard)</span><span class="tag">Cross-Section Overlay</span><span class="tag">Facial Expression Loop</span><span class="tag">Expression Loop (Frame-by-Frame)</span><span class="tag">Moaning Audio Track</span><span class="tag">Frequency Analysis Mode</span><span class="tag">Breast Bounce Physics (60fps)</span><span class="tag">Jiggle Coefficient Customizable</span><span class="tag star">Tear Track (Bilateral Symmetrical)</span><span class="tag star">Fear/Pleasure Disambiguation Mode™</span><span class="tag star">Hymen Status Indicator™</span><span class="tag">Cervix Proximity Alert</span><span class="tag">Throat Depth Indicator (Real-Time)</span><span class="tag">Toe Curl — Angle Measurement</span><span class="tag">Body Temperature Heat Map</span><span class="tag">Micro-Expression Capture</span><span class="tag">Pupil Dilation Measurement</span><span class="tag">Neural Response Simulation</span><span class="tag">Internal Camera POV</span><span class="tag">Sweat Distribution Map</span><span class="tag">Hair Follicle Erection Index</span><span class="tag">Pore-Level Skin Texture Rendering</span>
+        </div>
+        <div class="grp-label" style="margin-top:14px;">Climax Rendering Package™</div>
+        <div class="tags-row">
+          <span class="tag">Ejaculation Trajectory</span><span class="tag">Slow Motion 0.1×</span><span class="tag">Facial (Standard)</span><span class="tag">Facial (Full Coverage)</span><span class="tag">Chest Deposit</span><span class="tag">Internal — X-Ray Overlay</span><span class="tag">Creampie Overflow Variant</span><span class="tag">Multiple Round Continuous</span><span class="tag star">Volume — Olympic Pool Equivalent™</span><span class="tag">Pulsation Waveform Visualization</span><span class="tag">Rope Count — "Uncountable"</span><span class="tag star">0.01× "Geological Time"™</span><span class="tag">Director's Cut — Loop Mode ∞</span><span class="tag">Splatter Pattern Analysis</span><span class="tag">Distance Record — World Record Comparison</span><span class="tag">Color Grading — "Cinematic Gold"</span>
+        </div>
+      </div>
+      <button class="btn btn-purple" onclick="goTo('p8')">confirm & receive climax delivery →</button>
+    </div>
+  </div>
+</div>
+
+
+<!-- ═══════════════════════════════ -->
+<!-- PAGE 5 — FEMALE BUILDER        -->
+<!-- ═══════════════════════════════ -->
+<div class="page" id="p5">
+  <div class="gif-frame" id="frame5"></div>
+  <button class="back-btn" onclick="goTo('p3')">← back</button>
+  <div class="builder-wrap">
+    <div class="step-ind" style="text-align:center; position:relative; z-index:1;">pathway b — step 3 of 5 — desire assembly zone</div>
+    <div class="builder-title">Modular Desire Configuration Interface</div>
+    <div class="builder-sub">Select parameters below. Click items in the zone to remove them. The Climax Package™ is pre-installed and cannot be removed.</div>
+
+    <div class="assembly-zone">
+      <div class="az-label">assembly zone — click below to add · click zone items to remove</div>
+      <div style="text-align:center; padding-top:4px;">
+        <div class="az-locked">CLIMAX PACKAGE™ &nbsp;■&nbsp; PRE-INSTALLED</div>
+      </div>
+      <div class="az-items" id="azItems"></div>
+    </div>
+
+    <div class="opts-grid">
+      <div class="opt-cluster">
+        <div class="oc-label">Content & Body</div>
+        <button class="opt-pill" data-label="Explicit Content — LOW" onclick="addItem(this)">Explicit Content — LOW</button>
+        <button class="opt-pill" data-label="Explicit Content — MED" onclick="addItem(this)">Explicit Content — MED</button>
+        <button class="opt-pill" data-label="Explicit Content — HIGH" onclick="addItem(this)">Explicit Content — HIGH</button>
+        <button class="opt-pill" data-label="Somatic Distance — NEAR" onclick="addItem(this)">Somatic Distance — NEAR</button>
+        <button class="opt-pill" data-label="Somatic Distance — FAR" onclick="addItem(this)">Somatic Distance — FAR</button>
+        <button class="opt-pill" data-label="Somatic Visibility — LOW" onclick="addItem(this)">Somatic Visibility — LOW</button>
+        <button class="opt-pill" data-label="Somatic Visibility — HIGH" onclick="addItem(this)">Somatic Visibility — HIGH</button>
+        <button class="opt-pill" data-label="Seme Body — Fully Hyperreal" onclick="addItem(this)">Seme Body — Fully Hyperreal</button>
+        <button class="opt-pill" data-label="Seme Body — Anchored to Reality" onclick="addItem(this)">Seme Body — Anchored to Reality</button>
+        <button class="opt-pill" data-label="Organ — Pure Symbol" onclick="addItem(this)">Organ — Pure Symbol</button>
+        <button class="opt-pill" data-label="Organ — Realistic" onclick="addItem(this)">Organ — Realistic</button>
+      </div>
+      <div class="opt-cluster">
+        <div class="oc-label">Desire Subject</div>
+        <button class="opt-pill" data-label="Subject — External Observer" onclick="addItem(this)">Subject — External Observer</button>
+        <button class="opt-pill" data-label="Subject — Deep Immersion" onclick="addItem(this)">Subject — Deep Immersion</button>
+        <button class="opt-pill" data-label="Subject — Decentered Floating" onclick="addItem(this)">Subject — Decentered Floating</button>
+        <button class="opt-pill" data-label="Gaze — Omniscient" onclick="addItem(this)">Gaze — Omniscient</button>
+        <button class="opt-pill" data-label="Gaze — Seme POV" onclick="addItem(this)">Gaze — Seme POV</button>
+        <button class="opt-pill" data-label="Gaze — Uke POV" onclick="addItem(this)">Gaze — Uke POV</button>
+        <button class="opt-pill" data-label="Gaze — Floating" onclick="addItem(this)">Gaze — Floating</button>
+        <button class="opt-pill" data-label="Identification — Partial" onclick="addItem(this)">Identification — Partial</button>
+        <button class="opt-pill" data-label="Arousal — Emotional Tension" onclick="addItem(this)">Arousal — Emotional Tension</button>
+        <button class="opt-pill" data-label="Arousal — Atmospheric" onclick="addItem(this)">Arousal — Atmospheric</button>
+        <button class="opt-pill" data-label="Arousal — Power Conflict" onclick="addItem(this)">Arousal — Power Conflict</button>
+      </div>
+      <div class="opt-cluster">
+        <div class="oc-label">Narrative & Structure</div>
+        <button class="opt-pill" data-label="Narrative Density — LOW" onclick="addItem(this)">Narrative Density — LOW</button>
+        <button class="opt-pill" data-label="Narrative Density — HIGH" onclick="addItem(this)">Narrative Density — HIGH</button>
+        <button class="opt-pill" data-label="Pre-Scene Accumulation — DEEP" onclick="addItem(this)">Pre-Scene Accumulation — DEEP</button>
+        <button class="opt-pill" data-label="Pre-Scene Accumulation — ZERO" onclick="addItem(this)">Pre-Scene Accumulation — ZERO</button>
+        <button class="opt-pill" data-label="Scene Position — Opening" onclick="addItem(this)">Scene Position — Opening</button>
+        <button class="opt-pill" data-label="Scene Position — Terminus" onclick="addItem(this)">Scene Position — Terminus</button>
+        <button class="opt-pill" data-label="Text-Dominant" onclick="addItem(this)">Text-Dominant</button>
+        <button class="opt-pill" data-label="Image-Dominant" onclick="addItem(this)">Image-Dominant</button>
+        <button class="opt-pill" data-label="Emotional Injury — EXTREME" onclick="addItem(this)">Emotional Injury — EXTREME</button>
+        <button class="opt-pill" data-label="Emotional Injury — ABSENT" onclick="addItem(this)">Emotional Injury — ABSENT</button>
+        <button class="opt-pill" data-label="BE/HE Contested Zone" onclick="addItem(this)">BE/HE Contested Zone</button>
+      </div>
+      <div class="opt-cluster">
+        <div class="oc-label">Tension & Power</div>
+        <button class="opt-pill" data-label="Power Asymmetry — HIGH" onclick="addItem(this)">Power Asymmetry — HIGH</button>
+        <button class="opt-pill" data-label="Power Asymmetry — LOW" onclick="addItem(this)">Power Asymmetry — LOW</button>
+        <button class="opt-pill" data-label="Prohibition — EXTREME" onclick="addItem(this)">Prohibition — EXTREME</button>
+        <button class="opt-pill" data-label="Prohibition — LOW" onclick="addItem(this)">Prohibition — LOW</button>
+        <button class="opt-pill" data-label="Violence-Arousal — HIGH" onclick="addItem(this)">Violence-Arousal — HIGH</button>
+        <button class="opt-pill" data-label="Violence-Arousal — LOW" onclick="addItem(this)">Violence-Arousal — LOW</button>
+        <button class="opt-pill" data-label="Pain→Pleasure — Full Conversion" onclick="addItem(this)">Pain→Pleasure — Full</button>
+        <button class="opt-pill" data-label="Pain→Pleasure — No Conversion" onclick="addItem(this)">Pain→Pleasure — None</button>
+        <button class="opt-pill" data-label="Gender Performance — Fixed" onclick="addItem(this)">Gender Performance — Fixed</button>
+        <button class="opt-pill" data-label="Gender Performance — Fully Fluid" onclick="addItem(this)">Gender Performance — Fluid</button>
+      </div>
+      <div class="opt-cluster">
+        <div class="oc-label">Character & Emotion</div>
+        <button class="opt-pill" data-label="Uke Breakdown — Total Collapse" onclick="addItem(this)">Uke Breakdown — Total</button>
+        <button class="opt-pill" data-label="Uke Breakdown — Restrained" onclick="addItem(this)">Uke Breakdown — Restrained</button>
+        <button class="opt-pill" data-label="Shame — Primary Driver" onclick="addItem(this)">Shame — Primary Driver</button>
+        <button class="opt-pill" data-label="Shame — Absent" onclick="addItem(this)">Shame — Absent</button>
+        <button class="opt-pill" data-label="Attachment — DEEP" onclick="addItem(this)">Attachment — DEEP</button>
+        <button class="opt-pill" data-label="Attachment — ZERO" onclick="addItem(this)">Attachment — ZERO</button>
+        <button class="opt-pill" data-label="Fluid Emotionalization — HIGH" onclick="addItem(this)">Fluid Emotionalization — HIGH</button>
+        <button class="opt-pill" data-label="Fluid Emotionalization — NONE" onclick="addItem(this)">Fluid Emotionalization — NONE</button>
+        <button class="opt-pill" data-label="Sync Climax — Ritualized" onclick="addItem(this)">Sync Climax — Ritualized</button>
+        <button class="opt-pill" data-label="Sync Climax — Absent" onclick="addItem(this)">Sync Climax — Absent</button>
+      </div>
+      <div class="opt-cluster">
+        <div class="oc-label">Climax Form</div>
+        <button class="opt-pill" data-label="Climax — Visible Node" onclick="addItem(this)">Climax — Visible Node</button>
+        <button class="opt-pill" data-label="Climax — Implied" onclick="addItem(this)">Climax — Implied</button>
+        <button class="opt-pill" data-label="Climax — Indeterminate" onclick="addItem(this)">Climax — Indeterminate</button>
+        <button class="opt-pill" data-label="Gender Symbol — Hyperreal" onclick="addItem(this)">Gender Symbol — Hyperreal</button>
+        <button class="opt-pill" data-label="Gender Symbol — Real" onclick="addItem(this)">Gender Symbol — Real</button>
+        <button class="opt-pill" data-label="Organ — Pure Power Marker" onclick="addItem(this)">Organ — Pure Power Marker</button>
+        <button class="opt-pill" data-label="Reader Gaze — Decentered" onclick="addItem(this)">Reader Gaze — Decentered</button>
+        <button class="opt-pill" data-label="BE/HE Contested Zone" onclick="addItem(this)">BE/HE Contested Zone</button>
+      </div>
+    </div>
+
+    <div style="text-align:center; position:relative; z-index:1;">
+      <button class="btn btn-purple" onclick="goTo('p6')">proceed to order confirmation →</button>
+    </div>
+  </div>
+</div>
+
+
+<!-- ═══════════════════════════════ -->
+<!-- PAGE 6 — PHALLUS               -->
+<!-- ═══════════════════════════════ -->
+<div class="page" id="p6" style="background:var(--dark);">
+  <div class="gif-frame" id="frame6"></div>
+  <button class="back-btn" onclick="goTo('p5')">← back</button>
+  <div class="page-inner">
+    <div class="content-box">
+      <span class="step-ind">pathway b — step 4 of 5 — mandatory hardware acquisition</span>
+      <div class="mandatory-tag">your configuration is incomplete</div>
+      <div class="section-title">EEC™ Cyber-Phallus Prosthetic<br><span style="font-size:13px; font-family:'Share Tech Mono',monospace; font-weight:400; color:var(--p1); letter-spacing:0.1em;">Pneumatic Spirit Phallus™ v2.1</span></div>
+      <table class="spec-table" style="margin-top:16px; text-align:left;">
+        <tr><td>Model</td><td>Pneumatic Spirit Phallus™ v2.1 — Non-Corporeal Edition</td></tr>
+        <tr><td>Type</td><td>Spiritual / Non-Ejaculatory / Cortically Mounted</td></tr>
+        <tr><td>Interface substrate</td><td>Desire substrate (non-somatic). Does not interface with the physical body.</td></tr>
+        <tr><td>Ejaculatory output</td><td>Simulated. Spiritual. Invisible to EEC™ standard verification systems.</td></tr>
+        <tr><td>Material</td><td>Pharmacopornographic-grade synthetic desire-polymer. Non-extractable.</td></tr>
+        <tr><td>Installation site</td><td>Imaginary body of the Vector figure (see Installation Guide, §2).</td></tr>
+        <tr><td>IP ownership</td><td>Ejaculatory Economy Corporation™. All rights reserved.</td></tr>
+        <tr><td>License type</td><td>Perpetual. Non-transferable. EEC™-monitored. Revocable at any time.</td></tr>
+        <tr><td>Status</td><td><strong style="color:var(--p1);">MANDATORY. Cannot be skipped.</strong></td></tr>
+      </table>
+      <div class="legal-box">The Pneumatic Spirit Phallus™ (hereafter "the Device") constitutes the only currently available EEC™-licensed mechanism by which a non-ejaculatory subject may access the Climax Package™. The Device does not produce visible ejaculatory fluid. It produces a cortical, non-quantifiable, non-visible orgasmic signal — a "spiritual ejaculation" — transmitted through the imaginary body of the Vector figure to the user's desire substrate. The Device is a prosthesis in the Preciadian sense: not a supplement to a lacking body, but a technology that produces the body it appears to supplement. Nevertheless, the phallus remains a phallus. Its copyright belongs to EEC™. The desire circuit has been extended. It has not been broken.</div>
+      <button class="btn btn-purple" onclick="goTo('p7')">accept & purchase — proceed to installation →</button>
+    </div>
+  </div>
+</div>
+
+
+<!-- ═══════════════════════════════ -->
+<!-- PAGE 7 — INSTALLATION          -->
+<!-- ═══════════════════════════════ -->
+<div class="page" id="p7" style="background:var(--dark);">
+  <div class="gif-frame" id="frame7"></div>
+  <button class="back-btn" onclick="goTo('p6')">← back</button>
+  <div class="page-inner">
+    <div class="content-box">
+      <span class="step-ind">pathway b — step 5 of 5 — installation protocol</span>
+      <div class="install-title">Pneumatic Spirit Phallus™ v2.1<br>Installation & Cortical Calibration Guide</div>
+      <div class="install-ref">EEC™ TECHNICAL DOCUMENT REF: EEC-PSP-2.1-USR-EN &nbsp;·&nbsp; READ BEFORE PROCEEDING</div>
+      <div class="warn-strip">⚠ WARNING: The Pneumatic Spirit Phallus™ is a non-corporeal prosthetic. It does not interface with the physical body. It interfaces with the desire substrate. Do not attempt physical installation. EEC™ accepts no liability for injuries sustained during attempted physical installation of a non-physical device.</div>
+      <div class="i-step"><div class="i-num">STEP 1 — SUBSTRATE PREPARATION</div><div class="i-title">Establish somatic distance</div><div class="i-body">Prior to Device activation, the user must establish a minimum somatic distance of one (1) fictional intermediary body between themselves and the erotic field. This body — hereafter the "Vector" — must be male, non-self, and sufficiently hyperreal in its corporeality to preclude direct somatic identification. The Device cannot be mounted on a body the user identifies with. Optimal substrate preparation involves confirming that the Vector's shoulder width exceeds anatomically plausible parameters by a minimum of 40%.</div></div>
+      <div class="i-step"><div class="i-num">STEP 2 — DEVICE MOUNTING</div><div class="i-title">Affix the Device to the Vector's imaginary body</div><div class="i-body">The Device is mounted onto the desire-object, not the user. Locate the primary Vector figure in the selected narrative field. Using standard imaginal projection, affix the Device to the Vector's pelvic-symbolic zone. The Device will self-configure to the appropriate scale — determined by the narrative's power-indexing system, not by anatomical reference. EEC™ is not responsible for unexpected Device proportions resulting from extreme Power Asymmetry configurations.</div></div>
+      <div class="i-step"><div class="i-num">STEP 3 — CORTICAL CALIBRATION</div><div class="i-title">Synchronize desire substrate with narrative tension parameters</div><div class="i-body">The Device cannot function in the absence of narrative scaffolding. Users must confirm that their assembled configuration contains a minimum Narrative Density coefficient of 0.4 and a Pre-Scene Relational Accumulation value of at least LOW. The Device is powered by tension, not friction. Pure somatic content will cause Device resonance failure. Users may experience calibration as: sustained attention, accelerated reading pace, heightened emotional reactivity, involuntary page-turning.</div></div>
+      <div class="i-step"><div class="i-num">STEP 4 — SPIRITUAL EJACULATION SEQUENCE</div><div class="i-title">Initiate cortical climax protocol</div><div class="i-body">Activation occurs automatically upon reaching narrative climax threshold. The Device transmits a non-visible, non-fluid, internally experienced ejaculatory signal to the user's desire substrate. This signal does not produce measurable output. It does not produce visible fluid. It produces an internal state which EEC™ systems are technically incapable of verifying. The simultaneous climax between Vector and Uke serves as the closest available external marker.</div></div>
+      <div class="i-step"><div class="i-num">STEP 5 — OUTPUT VERIFICATION ATTEMPT</div><div class="i-title">Submit climax for EEC™ standard processing</div><div class="i-body">EEC™ Standard 001 requires a visible, quantifiable ejaculatory event for climax confirmation. The Device does not produce one. The system will nonetheless attempt to process your climax. Results are expected to be inconclusive. This is not a malfunction. This is the system operating as designed, encountering a desire it was not designed for.</div></div>
+      <div class="warn-strip" style="margin-top:14px;">⚠ DISCLAIMER: EEC™ does not warrant the spiritual ejaculatory output of the Pneumatic Spirit Phallus™ v2.1 against EEC™ Standard 001. The legal department is aware. The legal department is also operating within EEC™ infrastructure and therefore cannot resolve this contradiction.</div>
+      <button class="btn btn-purple" style="margin-top:16px;" onclick="goTo('p8')">installation complete — proceed to climax delivery →</button>
+    </div>
+  </div>
+</div>
+
+
+<!-- ═══════════════════════════════ -->
+<!-- PAGE 8 — EJACULATION           -->
+<!-- ═══════════════════════════════ -->
+<div class="page" id="p8">
+  <div class="gif-frame" id="frame8"></div>
+  <div class="ejac-inner">
+    <img src="6.gif" alt="" class="ejac-gif">
+    <div class="ejac-title">Congratulations.</div>
+    <div class="ejac-sub">YOU HAVE EJACULATED &nbsp;·&nbsp; ORDER STATUS: COMPLETE &nbsp;·&nbsp; EEC™ CLIMAX PACKAGE™ DELIVERED</div>
+    <div style="font-size:10px; color:#222; font-style:italic; margin-bottom:26px; letter-spacing:0.05em; line-height:1.9;">
+      Your desire production cycle is terminated.<br>
+      Your session has been logged. Your body has been produced.<br>
+      Thank you for participating in the Ejaculatory Economy™.
+    </div>
+    <div class="excl-section">
+      <div class="excl-head">EEC™ Official Statement — Products Not Covered By This Platform</div>
+      <div style="font-size:9px; color:#181818; font-style:italic; margin-bottom:12px; line-height:1.9;">The following desire modalities fall outside EEC™ Standard 001. They cannot be processed, indexed, sold, or incorporated by this platform. We list them here not as an omission, but as a record of what the Ejaculatory Economy™ requires remain invisible in order to function.</div>
+      <div class="excl-item">Complex climax. Non-linear climax. Invisible climax. Climax without a visible endpoint.</div>
+      <div class="excl-item">Desire that does not terminate. Desire that accumulates without resolving into a product.</div>
+      <div class="excl-item">Decentered arousal. Distributed sensation. Pleasure without a subject who can be sold to.</div>
+      <div class="excl-item">Desire circuits that include: longing, ambiguity, grief, tenderness, boredom, contradiction.</div>
+      <div class="excl-item">Climax that cannot be photographed. Climax that does not know it is a climax.</div>
+      <div class="excl-item">The body's desire outside the frame. Before the scene begins. After the screen goes dark.</div>
+      <div class="excl-item">Non-ejaculatory orgasm. Orgasm without organ. Pleasure without infrastructure.</div>
+      <div class="excl-item">Desire that belongs to no one. Desire that refuses to become a market.</div>
+      <div class="excl-item">The parts of women's desire that cannot be made visible, quantifiable, or ejaculatory.</div>
+      <div class="excl-item">The parts that remain — after the Device is returned, after the license expires, after the screen goes dark.</div>
+      <div class="final-stmt">
+        EEC™ does not produce these experiences.<br>
+        EEC™ cannot sell these experiences.<br>
+        EEC™ cannot incorporate these experiences.<br><br>
+        <i>Not because they do not exist.<br>
+        But because they are not ours to own.</i>
+      </div>
+      <div style="text-align:center;">
+        <button class="btn btn-white" style="font-size:10px;" onclick="restart()">place another order →</button>
+      </div>
+    </div>
+    <div class="footer-corp">
+      Ejaculatory Economy Corporation™ (EEC™) · Desire Infrastructure Division · EEC™ Standard 001<br>
+      All climax outputs subject to EEC™ visibility requirements · The Cyber-Phallus Prosthetic™ is licensed, not owned<br>
+      Spiritual ejaculation not covered by EEC™ warranty · © EEC™ All Desire Reserved
+    </div>
+  </div>
+</div>
+
+
+<script>
+// build gif border frames dynamically
+function buildFrame(id) {
+  const frame = document.getElementById(id);
+  if (!frame) return;
+  const src = '1.gif';
+  const size = 80;
+  const cols = Math.ceil(window.innerWidth / size) + 2;
+  const rows = Math.ceil(window.innerHeight / size) + 2;
+
+  // top row
+  const top = document.createElement('div');
+  top.className = 'row-top';
+  for (let i = 0; i < cols; i++) {
+    const img = document.createElement('img');
+    img.src = src; top.appendChild(img);
+  }
+  // bottom row
+  const bot = document.createElement('div');
+  bot.className = 'row-bottom';
+  for (let i = 0; i < cols; i++) {
+    const img = document.createElement('img');
+    img.src = src; bot.appendChild(img);
+  }
+  // left col
+  const left = document.createElement('div');
+  left.className = 'col-left';
+  for (let i = 0; i < rows; i++) {
+    const img = document.createElement('img');
+    img.src = src; left.appendChild(img);
+  }
+  // right col
+  const right = document.createElement('div');
+  right.className = 'col-right';
+  for (let i = 0; i < rows; i++) {
+    const img = document.createElement('img');
+    img.src = src; right.appendChild(img);
+  }
+
+  frame.appendChild(top);
+  frame.appendChild(bot);
+  frame.appendChild(left);
+  frame.appendChild(right);
+}
+
+// build all frames
+['frame2','frame3','frame4a','frame4b','frame4c','frame5','frame6','frame7','frame8'].forEach(buildFrame);
+
+function goTo(id) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  window.scrollTo(0, 0);
+}
+
+function yn(btn) {
+  const row = btn.closest('.yn');
+  row.querySelectorAll('.yn-btn').forEach(b => b.classList.remove('on'));
+  btn.classList.add('on');
+}
+
+function addItem(btn) {
+  if (btn.classList.contains('sel')) return;
+  btn.classList.add('sel');
+  const label = btn.dataset.label;
+  const zone = document.getElementById('azItems');
+  const chip = document.createElement('div');
+  chip.className = 'az-chip';
+  chip.textContent = label + ' ×';
+  chip.onclick = function() { chip.remove(); btn.classList.remove('sel'); };
+  zone.appendChild(chip);
+}
+
+function restart() {
+  document.getElementById('azItems').innerHTML = '';
+  document.querySelectorAll('.opt-pill').forEach(b => b.classList.remove('sel'));
+  goTo('p1');
+}
+</script>
+</body>
+</html>
